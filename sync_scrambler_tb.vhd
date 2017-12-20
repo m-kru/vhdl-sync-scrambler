@@ -22,7 +22,7 @@ begin
     sync_scrambler_inst: entity work.sync_scrambler
         port map (
             clk => clk,
-            reset => reset,
+            srst => reset,
             control => control,
             in_word => in_word,
             out_word => out_word

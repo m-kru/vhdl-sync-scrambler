@@ -34,7 +34,7 @@ begin
         )
         port map (
             clk => clk,
-            reset => reset_sync,
+            srst => reset_sync,
             control => control_sync,
             in_word => in_word_sync,
             out_word => out_word

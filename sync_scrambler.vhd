@@ -19,7 +19,7 @@ entity sync_scrambler is
     );
     port (
         clk: in std_ulogic;
-        reset: in std_ulogic;
+        srst: in std_ulogic;
         -- Control vector:
         -- "00" - out word equals in word
         -- "01" - out word is scrambled
@@ -76,7 +76,7 @@ begin
         end;
     begin
         if rising_edge(clk) then
-            if reset = '1' then
+            if srst = '1' then
                 state <= std_ulogic_vector(to_unsigned(to_integer(unsigned(INIT_DOWNTO)), POLY_DOWNTO'length));
             else
                 case control is
