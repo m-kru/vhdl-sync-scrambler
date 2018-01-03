@@ -47,7 +47,7 @@ begin
             control <= SYNC_SCRAMBLER_CTRL_SET_STATE;
             in_word <= (others => '0');
             wait for CLK_PERIOD;
-            control <= sync_scrambler_ctrl_scramble;
+            control <= SYNC_SCRAMBLER_CTRL_SCRAMBLE;
             in_word <= (others => '1');
             wait for CLK_PERIOD;
             assert out_word = in_word report "Out_word differs from in_word" &
@@ -57,11 +57,13 @@ begin
 
         procedure test_default_generics is
         begin
-            control <= sync_scrambler_ctrl_scramble;
+            control <= SYNC_SCRAMBLER_CTRL_SCRAMBLE;
             in_word <= (others => '0');
             wait for CLK_PERIOD;
-            assert out_word = x"000000AC351586A0"
-            report "Out_word differs from in_word for default internal scrambler state.";
+            -- For default b"1" init state we should see polynomial at the
+            -- output after 1 clock cycle.
+            assert out_word = x"0400008000000000"
+            report "Wrong out_word for default internal scrambler state.";
         end;
 
     begin

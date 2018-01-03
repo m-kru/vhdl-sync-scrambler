@@ -1,6 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
---use ieee.numeric_std.all;
 
 package sync_scrambler_pkg is
     constant SYNC_SCRAMBLER_CTRL_PASS: std_ulogic_vector(1 downto 0) := "00";
@@ -47,14 +46,13 @@ package body sync_scrambler_pkg is
     return std_ulogic_vector is 
         variable min: natural := find_min_coef(coef_array);
         variable max: natural := find_max_coef(coef_array);
---        variable poly: std_ulogic_vector(max downto 0) := (others => '0');
         variable poly: std_ulogic_vector(0 to max) := (others => '0');
     begin
         assert min = 0 report "Synchronous scrambler polynomial is probably" &
                               "missing coefficient for x^0." severity error;
 
         for i in coef_array'range loop
-            poly(max - coef_array(i)) := '1';
+            poly(coef_array(i)) := '1';
         end loop;
 
         return poly;

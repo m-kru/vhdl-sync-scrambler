@@ -1,6 +1,5 @@
 library ieee;
 use ieee.std_logic_1164.all;
-use ieee.numeric_std.all;
 
 use work.sync_scrambler_pkg.all;
 
@@ -15,7 +14,7 @@ entity sync_scrambler is
         POLYNOMIAL: std_ulogic_vector := scrambler_poly((58, 39, 0));
         -- Initial scrambler state, must differ from 0 and not exceed polynomial
         -- length.
-        INIT_STATE: std_ulogic_vector := b"1010_1100_0011_0101"
+        INIT_STATE: std_ulogic_vector := b"1"
     );
     port (
         clk: in std_ulogic;
@@ -33,6 +32,16 @@ end;
 
 architecture behavioral of sync_scrambler is
 
+    function state_to_to_state_downto(st_to: std_ulogic_vector)
+    return std_ulogic_vector is
+        variable st_downto: std_ulogic_vector(POLYNOMIAL'reverse_range) := (others => '0');
+    begin
+        for i in st_to'range loop
+            st_downto(i) := st_to(st_to'length - 1 - i);
+        end loop;
+        return st_downto;
+    end;
+
     function state_to_out(st: std_ulogic_vector(POLYNOMIAL'reverse_range))
     return std_ulogic_vector is
         variable ret: std_ulogic_vector(LENGTH - 1 downto 0) := (others => '0');
@@ -43,16 +52,14 @@ architecture behavioral of sync_scrambler is
         return ret;
     end;
 
-    alias POLY_DOWNTO: std_ulogic_vector(POLYNOMIAL'reverse_range) is POLYNOMIAL;
-    alias INIT_DOWNTO: std_ulogic_vector(INIT_STATE'reverse_range) is INIT_STATE;
-    signal state: std_ulogic_vector(POLY_DOWNTO'range) := std_ulogic_vector(to_unsigned(to_integer(unsigned(INIT_DOWNTO)), POLY_DOWNTO'length));
+    signal state: std_ulogic_vector(POLYNOMIAL'reverse_range) := state_to_to_state_downto(INIT_STATE);
 
-   function poly_out(st: std_ulogic_vector(POLY_DOWNTO'range))
+    function poly_out(st: std_ulogic_vector(POLYNOMIAL'reverse_range))
     return std_ulogic is
         variable ret: std_ulogic := '0';
     begin
-        for i in natural(POLY_DOWNTO'length - 1) downto 1 loop
-            ret := ret xor (POLY_DOWNTO(i) and st(i));
+        for i in natural(POLYNOMIAL'length - 1) downto 1 loop
+            ret := ret xor (POLYNOMIAL(i) and st(i));
         end loop;
         return ret;
     end;
@@ -61,12 +68,12 @@ begin
 
     process (clk)
         procedure scramble is
-            variable aux_state: std_ulogic_vector(POLY_DOWNTO'range);
+            variable aux_state: std_ulogic_vector(POLYNOMIAL'reverse_range);
             variable state_out: std_ulogic;
         begin
             aux_state := state;
 
-            for i in in_word'range loop
+            for i in in_word'reverse_range loop
                 state_out := poly_out(aux_state);
                 out_word(i) <= in_word(i) xor state_out;
                 aux_state := aux_state(state'length - 2 downto 0) & state_out;
@@ -77,7 +84,7 @@ begin
     begin
         if rising_edge(clk) then
             if srst = '1' then
-                state <= std_ulogic_vector(to_unsigned(to_integer(unsigned(INIT_DOWNTO)), POLY_DOWNTO'length));
+                state <= state_to_to_state_downto(INIT_STATE);
             else
                 case control is
                     when "00" =>
