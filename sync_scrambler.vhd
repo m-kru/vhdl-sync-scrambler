@@ -33,7 +33,7 @@ end;
 
 architecture behavioral of sync_scrambler is
 
-    function state_to_out(st: std_ulogic_vector(INIT_STATE'reverse_range))
+    function state_to_out(st: std_ulogic_vector(POLYNOMIAL'reverse_range))
     return std_ulogic_vector is
         variable ret: std_ulogic_vector(LENGTH - 1 downto 0) := (others => '0');
     begin
